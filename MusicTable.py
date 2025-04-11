@@ -14,23 +14,33 @@ try:
     response = dynamodb.create_table(
         TableName=table_name,
         KeySchema=[
-            {
-                'AttributeName': 'title',
-                'KeyType': 'HASH'
-            },
-            {
-                'AttributeName': 'album',
-                'KeyType': 'RANGE'
-            }
+            {'AttributeName': 'title', 'KeyType': 'HASH'},
+            {'AttributeName': 'album', 'KeyType': 'RANGE'}
         ],
         AttributeDefinitions=[
+            {'AttributeName': 'title', 'AttributeType': 'S'},
+            {'AttributeName': 'album', 'AttributeType': 'S'},
+            {'AttributeName': 'artist', 'AttributeType': 'S'},
+            {'AttributeName': 'year', 'AttributeType': 'S'}
+        ],
+        GlobalSecondaryIndexes=[
             {
-                'AttributeName': 'title',
-                'AttributeType': 'S'
+                'IndexName': 'ArtistIndex',
+                'KeySchema': [{'AttributeName': 'artist', 'KeyType': 'HASH'}],
+                'Projection': {'ProjectionType': 'ALL'},
+                'ProvisionedThroughput': {'ReadCapacityUnits': 5, 'WriteCapacityUnits': 5}
             },
             {
-                'AttributeName': 'album',
-                'AttributeType': 'S'
+                'IndexName': 'YearIndex',
+                'KeySchema': [{'AttributeName': 'year', 'KeyType': 'HASH'}],
+                'Projection': {'ProjectionType': 'ALL'},
+                'ProvisionedThroughput': {'ReadCapacityUnits': 5, 'WriteCapacityUnits': 5}
+            },
+            {
+                'IndexName': 'AlbumIndex',
+                'KeySchema': [{'AttributeName': 'album', 'KeyType': 'HASH'}],
+                'Projection': {'ProjectionType': 'ALL'},
+                'ProvisionedThroughput': {'ReadCapacityUnits': 5, 'WriteCapacityUnits': 5}
             }
         ],
         ProvisionedThroughput={
@@ -38,7 +48,7 @@ try:
             'WriteCapacityUnits': 5
         }
     )
-    print("Creating Music Table...")
+    print("Creating Music Table with GSIs...")
     dynamodb.get_waiter('table_exists').wait(TableName=table_name)
     print(f"Table '{table_name}' created successfully!")
 except Exception as e:
